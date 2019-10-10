@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/map"
+        android:icon="@drawable/ic_google_maps"
+        android:title="Map" />
+
+    <item
+        android:id="@+id/reminder_list"
+        android:icon="@drawable/ic_clipboard_list_outline"
+        android:title="Reminders" />
+
+    <item
+        android:id="@+id/add_reminder"
+        android:icon="@drawable/ic_calendar"
+        android:title="Add Reminder" />
+</menu>
