@@ -1,6 +1,8 @@
 package com.mghtest.reminderwithlocation.scenes.map
 
 
+import android.location.Address
+import android.location.Geocoder
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -13,11 +15,13 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener
 import com.mghtest.reminderwithlocation.R
+import java.io.IOException
 import java.util.*
 
 
@@ -70,9 +74,39 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         mMap = googleMap
 
         // Add a marker in Sydney and move the camera
-        val sydney = LatLng(-34.0, 151.0)
-        mMap.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
+        val sydney = LatLng(23.7509, 90.3904)
+        mMap.addMarker(MarkerOptions().position(sydney).draggable(true))
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(sydney, 13f))
+
+
+
+        mMap.setOnMarkerDragListener(object: GoogleMap.OnMarkerDragListener{
+            override fun onMarkerDragEnd(p0: Marker) {
+                var latLng = p0.position as LatLng
+                val geocoder= Geocoder(context, Locale.getDefault())
+
+
+                    val address = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1).get(0)
+                    Log.i("Address", address.toString())
+
+            }
+
+            override fun onMarkerDragStart(p0: Marker?) {
+                Log.i("Address","dragging started")
+            }
+
+            override fun onMarkerDrag(p0: Marker?) {
+
+                Log.i("Address","dragging")
+            }
+
+        })
+
+
+        mMap.setOnMapClickListener { GoogleMap.OnMapClickListener {
+
+        } }
+
     }
 
 
