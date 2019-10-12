@@ -16,4 +16,10 @@ class AppPreferences(val context: Context) {
     fun getString(KEY_NAME: String):String?{
         return sharedPreferences.getString(KEY_NAME, null)
     }
+
+    fun clear(KEY_NAME:String){
+        val editor: SharedPreferences.Editor = sharedPreferences.edit()
+        editor.remove(KEY_NAME)
+        editor.commit()
+    }
 }

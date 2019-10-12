@@ -85,11 +85,7 @@ class EventFragment : Fragment(), OnMapReadyCallback {
 
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
-
-        // Add a marker in Sydney and move the camera
-        val dhaka = LatLng(23.7509, 90.3904)
-        mMap.addMarker(MarkerOptions().position(dhaka))
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(dhaka, 13f))
+        plotLocations(mMap, dataList)
 
     }
 
@@ -105,6 +101,15 @@ class EventFragment : Fragment(), OnMapReadyCallback {
         if (sheetBehavior.state != BottomSheetBehavior.STATE_EXPANDED) {
             sheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
         }
+    }
+
+    private fun plotLocations(map: GoogleMap, data:List<Reminders>){
+        for (reminder in data){
+            val marker = LatLng(reminder.latitude, reminder.longitude)
+            mMap.addMarker(MarkerOptions().position(marker).title(reminder.reminderNote))
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(marker, 13f))
+        }
+
     }
 
 }

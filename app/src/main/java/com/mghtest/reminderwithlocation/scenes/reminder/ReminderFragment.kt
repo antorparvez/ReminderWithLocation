@@ -34,6 +34,7 @@ class ReminderFragment : Fragment() {
 
     private lateinit var time: TextView
     private lateinit var date: TextView
+    private lateinit var noData: TextView
 
     private lateinit var reminderNote: EditText
 
@@ -46,17 +47,11 @@ class ReminderFragment : Fragment() {
     private var note: String = ""
 
 
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         var view = inflater.inflate(R.layout.fragment_reminder, container, false)
-
-
-        val appPreferences = AppPreferences(requireContext())
-        var address = appPreferences.getString(AppConstants.ADDRESS)
-        Toast.makeText(context, address, Toast.LENGTH_SHORT).show()
 
         datePicker = view.findViewById(R.id.btn_set_date)
         timePicker = view.findViewById(R.id.btn_set_time)
@@ -64,6 +59,7 @@ class ReminderFragment : Fragment() {
 
         time = view.findViewById(R.id.reminder_time)
         date = view.findViewById(R.id.reminder_date)
+        noData = view.findViewById(R.id.tv_no_data)
 
         reminderNote = view.findViewById(R.id.et_note)
 
@@ -74,89 +70,106 @@ class ReminderFragment : Fragment() {
         val viewModelFactory = ReminderViewModelFactory(dataSource, application)
 
 
-        val reminderViewModel = ViewModelProviders.of(this, viewModelFactory).get(ReminderViewModel::class.java)
+        val reminderViewModel =
+            ViewModelProviders.of(this, viewModelFactory).get(ReminderViewModel::class.java)
 
 
-        timePicker.setOnClickListener { v ->
-            val c = Calendar.getInstance()
-            val hourX = c.get(Calendar.HOUR)
-            val minuteX = c.get(Calendar.MINUTE)
+        val appPreferences = AppPreferences(requireContext())
+        val address = appPreferences.getString(AppConstants.ADDRESS)
 
-            val listener = TimePickerDialog(
-                requireContext(),
-                TimePickerDialog.OnTimeSetListener(function = { v, hourOfDay, minute ->
-                    time.setText("$hourOfDay : $minute")
+        if (address==null) {
+            noData.visibility = View.VISIBLE
+        } else {
 
-                    hourForSaving = hourOfDay
-                    minuteForSaving = minute
+            timePicker.setOnClickListener { v ->
+                val c = Calendar.getInstance()
+                val hourX = c.get(Calendar.HOUR)
+                val minuteX = c.get(Calendar.MINUTE)
 
-                }), hourX, minuteX, true
-            )
+                val listener = TimePickerDialog(
+                    requireContext(),
+                    TimePickerDialog.OnTimeSetListener(function = { v, hourOfDay, minute ->
+                        time.setText("$hourOfDay : $minute")
 
-            listener.show()
-        }
+                        hourForSaving = hourOfDay
+                        minuteForSaving = minute
 
-
-        datePicker.setOnClickListener { v ->
-            val c = Calendar.getInstance()
-            val day = c.get(Calendar.DAY_OF_MONTH)
-            val month = c.get(Calendar.MONTH)
-            val year = c.get(Calendar.YEAR)
-
-            val listener = DatePickerDialog(
-                requireContext(),
-                DatePickerDialog.OnDateSetListener(function = { v, year1: Int, month1: Int, day1: Int ->
-
-                    date.setText("$day1/$month1/$year1")
-                    yearForSaving = year1
-                    monthForSaving = month1
-                    dayForSaving = day1
-
-                }),
-                day,
-                month,
-                year
-            )
-
-            listener.show()
-        }
-
-
-        setReminder.setOnClickListener { v ->
-            if (dayForSaving != 9999 && monthForSaving != 9999 && yearForSaving != 9999 && hourForSaving != 9999 && minuteForSaving != 9999) {
-
-                val calendarIntent = Intent(Intent.ACTION_INSERT)
-
-                calendarIntent.type = "vnd.android.cursor.item/event"
-                calendarIntent.putExtra(CalendarContract.Events.DESCRIPTION, note)
-                calendarIntent.putExtra(CalendarContract.Events.ALLOWED_REMINDERS, true)
-                calendarIntent.putExtra(CalendarContract.Events.HAS_ALARM, true)
-
-                val date = GregorianCalendar(
-                    yearForSaving,
-                    monthForSaving,
-                    dayForSaving,
-                    hourForSaving,
-                    minuteForSaving
+                    }), hourX, minuteX, true
                 )
 
-                calendarIntent.putExtra(CalendarContract.EXTRA_EVENT_ALL_DAY, true)
-                calendarIntent.putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, date.timeInMillis)
-                calendarIntent.putExtra(CalendarContract.EXTRA_EVENT_END_TIME, date.timeInMillis)
-
-                insertData(
-                    "$dayForSaving-$monthForSaving-$yearForSaving",
-                    "$hourForSaving : $minuteForSaving"
-                ,reminderViewModel)
-
-                //startActivity(calendarIntent)
+                listener.show()
+            }
 
 
-            } else {
-                Toast.makeText(context, "Please Select both date & time", Toast.LENGTH_SHORT).show()
+            datePicker.setOnClickListener { v ->
+                val c = Calendar.getInstance()
+                val day = c.get(Calendar.DAY_OF_MONTH)
+                val month = c.get(Calendar.MONTH)
+                val year = c.get(Calendar.YEAR)
+
+                val listener = DatePickerDialog(
+                    requireContext(),
+                    DatePickerDialog.OnDateSetListener(function = { v, year1: Int, month1: Int, day1: Int ->
+
+                        date.setText("$day/$month/$year")
+                        yearForSaving = year
+                        monthForSaving = month
+                        dayForSaving = day
+
+                    }),
+                    day,
+                    month,
+                    year
+                )
+
+                listener.show()
+            }
+
+
+            setReminder.setOnClickListener { v ->
+                if (dayForSaving != 9999 && monthForSaving != 9999 && yearForSaving != 9999 && hourForSaving != 9999 && minuteForSaving != 9999) {
+
+                    val calendarIntent = Intent(Intent.ACTION_INSERT)
+
+                    note = et_note.text.toString()
+                    calendarIntent.type = "vnd.android.cursor.item/event"
+                    calendarIntent.putExtra(CalendarContract.Events.DESCRIPTION, note)
+                    calendarIntent.putExtra(CalendarContract.Events.ALLOWED_REMINDERS, true)
+                    calendarIntent.putExtra(CalendarContract.Events.HAS_ALARM, true)
+
+                    val date = GregorianCalendar(
+                        yearForSaving,
+                        monthForSaving,
+                        dayForSaving,
+                        hourForSaving,
+                        minuteForSaving
+                    )
+
+                    calendarIntent.putExtra(CalendarContract.EXTRA_EVENT_ALL_DAY, true)
+                    calendarIntent.putExtra(
+                        CalendarContract.EXTRA_EVENT_BEGIN_TIME,
+                        date.timeInMillis
+                    )
+                    calendarIntent.putExtra(
+                        CalendarContract.EXTRA_EVENT_END_TIME,
+                        date.timeInMillis
+                    )
+
+                    insertData(
+                        "$dayForSaving-$monthForSaving-$yearForSaving",
+                        "$hourForSaving : $minuteForSaving"
+                        , reminderViewModel
+                    )
+
+                    startActivity(calendarIntent)
+
+
+                } else {
+                    Toast.makeText(context, "Please Select both date & time", Toast.LENGTH_SHORT)
+                        .show()
+                }
             }
         }
-
         return view
     }
 
@@ -168,7 +181,7 @@ class ReminderFragment : Fragment() {
         val lat = appPreferences.getString(AppConstants.LAT)
         val longt = appPreferences.getString(AppConstants.LONG)
 
-        note=et_note.text.toString()
+        note = et_note.text.toString()
         var reminders = Reminders(
             0L,
             address.toString(),
@@ -178,12 +191,22 @@ class ReminderFragment : Fragment() {
             time,
             date
         )
-            Log.i("TAG", reminders.placeName)
+        Log.i("TAG", reminders.placeName)
         reminderViewModel.saveReminder(reminders)
 
         Toast.makeText(context, "Reminder Saved", Toast.LENGTH_SHORT).show()
+        clearCacheData()
         activity?.findViewById<BottomNavigationView>(R.id.bottomNavigationView)
             ?.selectedItemId = R.id.reminder_list
+
+    }
+
+    private fun clearCacheData() {
+
+        val appPreferences = AppPreferences(requireContext())
+        appPreferences.clear(AppConstants.LONG)
+        appPreferences.clear(AppConstants.ADDRESS)
+        appPreferences.clear(AppConstants.LAT)
 
     }
 
