@@ -43,6 +43,7 @@ class EventFragment : Fragment(), OnMapReadyCallback {
 
         val mapFragment = childFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment
+
         mapFragment.getMapAsync(this)
 
         loadData()
@@ -71,9 +72,9 @@ class EventFragment : Fragment(), OnMapReadyCallback {
         mMap = googleMap
 
         // Add a marker in Sydney and move the camera
-        val sydney = LatLng(23.7509, 90.3904)
-        mMap.addMarker(MarkerOptions().position(sydney).draggable(true))
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(sydney, 13f))
+        val dhaka = LatLng(23.7509, 90.3904)
+        mMap.addMarker(MarkerOptions().position(dhaka))
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(dhaka, 13f))
 
     }
 

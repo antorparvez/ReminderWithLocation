@@ -8,6 +8,8 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.google.android.gms.common.api.Status
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -18,9 +20,12 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.libraries.places.api.model.Place
+import com.google.android.libraries.places.api.model.RectangularBounds
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.mghtest.reminderwithlocation.R
+import com.mghtest.reminderwithlocation.scenes.reminder.ReminderFragment
 import java.io.IOException
 import java.util.*
 
@@ -28,9 +33,12 @@ import java.util.*
 class MapFragment : Fragment(), OnMapReadyCallback {
 
 
-
     private lateinit var autocomplete: AutocompleteSupportFragment
     private lateinit var mMap: GoogleMap
+    private lateinit var saveReminderButton: Button
+    var address: String = ""
+    var latitude: Double = 0.0
+    var longitude: Double = 0.0
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -50,10 +58,23 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
         autocomplete.setPlaceFields(fields)
 
+        autocomplete.setLocationRestriction(
+            RectangularBounds.newInstance(
+                LatLng(23.66892, 90.46126)
+                , LatLng(23.89982, 90.38680)
+            )
+        )
+
+
         autocomplete.setOnPlaceSelectedListener(object : PlaceSelectionListener {
             override fun onPlaceSelected(p0: Place) {
                 Log.i("TAG", p0.toString())
-
+                address = p0.address.toString()
+                latitude = p0.latLng!!.latitude
+                longitude = p0.latLng!!.longitude
+                if(!address.isEmpty()){
+                    saveReminderButton.visibility=View.VISIBLE
+                }
             }
 
             override fun onError(p0: Status) {
@@ -64,6 +85,18 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         val mapFragment = childFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
+
+
+
+        saveReminderButton = view.findViewById(R.id.btn_add_reminder)
+
+        saveReminderButton.setOnClickListener { v->
+          //Toast.makeText(context, address, Toast.LENGTH_SHORT).show()
+            activity?.findViewById<BottomNavigationView>(R.id.bottomNavigationView)?.selectedItemId=R.id.add_reminder
+
+            //childFragmentManager.beginTransaction().replace(R.id.common_layout, ReminderFragment()).commit()
+
+        }
 
 
 
@@ -80,36 +113,40 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
 
 
-        mMap.setOnMarkerDragListener(object: GoogleMap.OnMarkerDragListener{
+        mMap.setOnMarkerDragListener(object : GoogleMap.OnMarkerDragListener {
             override fun onMarkerDragEnd(p0: Marker) {
                 var latLng = p0.position as LatLng
-                val geocoder= Geocoder(context, Locale.getDefault())
+                val geocoder = Geocoder(context, Locale.getDefault())
 
 
-                    val address = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1).get(0)
-                    Log.i("Address", address.toString())
+                val addressShort =
+                    geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1).get(0)
+                Log.i("Address", addressShort.getAddressLine(0))
+
+
+                address = addressShort.getAddressLine(0)
+                latitude = latLng.latitude
+                longitude = latLng.longitude
+
+                if(!address.isEmpty()){
+                    saveReminderButton.visibility=View.VISIBLE
+                }
 
             }
 
             override fun onMarkerDragStart(p0: Marker?) {
-                Log.i("Address","dragging started")
+                Log.i("Address", "dragging started")
             }
 
             override fun onMarkerDrag(p0: Marker?) {
 
-                Log.i("Address","dragging")
+                Log.i("Address", "dragging")
             }
 
         })
 
 
-        mMap.setOnMapClickListener { GoogleMap.OnMapClickListener {
-
-        } }
-
     }
-
-
 
 
 }
