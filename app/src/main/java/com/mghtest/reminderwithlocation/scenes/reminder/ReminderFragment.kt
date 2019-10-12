@@ -6,14 +6,23 @@ import android.app.TimePickerDialog
 import android.content.Intent
 import android.os.Bundle
 import android.provider.CalendarContract
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.*
+import android.widget.Button
+import android.widget.EditText
+import android.widget.TextView
+import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProviders
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.mghtest.reminderwithlocation.R
+import com.mghtest.reminderwithlocation.database.ReminderDatabase
+import com.mghtest.reminderwithlocation.database.Reminders
 import com.mghtest.reminderwithlocation.database.prefs.AppConstants
 import com.mghtest.reminderwithlocation.database.prefs.AppPreferences
+import kotlinx.android.synthetic.main.fragment_reminder.*
 import java.util.*
 
 
@@ -36,6 +45,8 @@ class ReminderFragment : Fragment() {
 
     private var note: String = ""
 
+
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -56,7 +67,14 @@ class ReminderFragment : Fragment() {
 
         reminderNote = view.findViewById(R.id.et_note)
 
+        val application = requireNotNull(this.activity).application
 
+        val dataSource = ReminderDatabase.getInstance(application).remindersDao
+
+        val viewModelFactory = ReminderViewModelFactory(dataSource, application)
+
+
+        val reminderViewModel = ViewModelProviders.of(this, viewModelFactory).get(ReminderViewModel::class.java)
 
 
         timePicker.setOnClickListener { v ->
@@ -109,18 +127,29 @@ class ReminderFragment : Fragment() {
 
                 val calendarIntent = Intent(Intent.ACTION_INSERT)
 
-                calendarIntent.type="vnd.android.cursor.item/event"
+                calendarIntent.type = "vnd.android.cursor.item/event"
                 calendarIntent.putExtra(CalendarContract.Events.DESCRIPTION, note)
                 calendarIntent.putExtra(CalendarContract.Events.ALLOWED_REMINDERS, true)
                 calendarIntent.putExtra(CalendarContract.Events.HAS_ALARM, true)
 
-                val date = GregorianCalendar(yearForSaving, monthForSaving, dayForSaving, hourForSaving, minuteForSaving)
+                val date = GregorianCalendar(
+                    yearForSaving,
+                    monthForSaving,
+                    dayForSaving,
+                    hourForSaving,
+                    minuteForSaving
+                )
 
                 calendarIntent.putExtra(CalendarContract.EXTRA_EVENT_ALL_DAY, true)
                 calendarIntent.putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, date.timeInMillis)
                 calendarIntent.putExtra(CalendarContract.EXTRA_EVENT_END_TIME, date.timeInMillis)
 
-                startActivity(calendarIntent)
+                insertData(
+                    "$dayForSaving-$monthForSaving-$yearForSaving",
+                    "$hourForSaving : $minuteForSaving"
+                ,reminderViewModel)
+
+                //startActivity(calendarIntent)
 
 
             } else {
@@ -131,5 +160,31 @@ class ReminderFragment : Fragment() {
         return view
     }
 
+
+    private fun insertData(date: String, time: String, reminderViewModel: ReminderViewModel) {
+
+        val appPreferences = AppPreferences(requireContext())
+        val address = appPreferences.getString(AppConstants.ADDRESS)
+        val lat = appPreferences.getString(AppConstants.LAT)
+        val longt = appPreferences.getString(AppConstants.LONG)
+
+        note=et_note.text.toString()
+        var reminders = Reminders(
+            0L,
+            address.toString(),
+            note,
+            lat!!.toDouble(),
+            longt!!.toDouble(),
+            time,
+            date
+        )
+            Log.i("TAG", reminders.placeName)
+        reminderViewModel.saveReminder(reminders)
+
+        Toast.makeText(context, "Reminder Saved", Toast.LENGTH_SHORT).show()
+        activity?.findViewById<BottomNavigationView>(R.id.bottomNavigationView)
+            ?.selectedItemId = R.id.reminder_list
+
+    }
 
 }

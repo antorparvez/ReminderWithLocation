@@ -11,9 +11,6 @@ interface RemindersDao{
     fun insert(reminder: Reminders)
 
     @Query("Select * From reminders_table ORDER BY reminderId DESC")
-    fun getAllReminders():LiveData<List<Reminders>>
+    fun getAllReminders():List<Reminders>
 
-
-    @Query("SELECT * FROM reminders_table ORDER BY reminderId DESC LIMIT 1")
-    fun getTonight(): Reminders?
 }

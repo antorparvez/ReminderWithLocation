@@ -2,12 +2,14 @@ package com.mghtest.reminderwithlocation.scenes.events
 
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -18,7 +20,10 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.mghtest.reminderwithlocation.R
+import com.mghtest.reminderwithlocation.database.ReminderDatabase
 import com.mghtest.reminderwithlocation.database.Reminders
+import com.mghtest.reminderwithlocation.scenes.reminder.ReminderViewModel
+import com.mghtest.reminderwithlocation.scenes.reminder.ReminderViewModelFactory
 
 
 class EventFragment : Fragment(), OnMapReadyCallback {
@@ -45,7 +50,18 @@ class EventFragment : Fragment(), OnMapReadyCallback {
 
         mapFragment.getMapAsync(this)
 
-        loadData()
+
+        val application = requireNotNull(this.activity).application
+
+        val dataSource = ReminderDatabase.getInstance(application).remindersDao
+
+        val viewModelFactory = EventsViewModelFactory(dataSource, application)
+
+
+        val reminderViewModel = ViewModelProviders.of(this, viewModelFactory).get(EventViewModel::class.java)
+
+
+        loadData(reminderViewModel)
         tvNoData=view.findViewById(R.id.tv_no_data)
 
         if(dataList.isEmpty()){
@@ -77,20 +93,11 @@ class EventFragment : Fragment(), OnMapReadyCallback {
 
     }
 
-    private fun loadData() {
-        val reminders = Reminders(1L, "Dhaka", "Dhaka", 12.3, 12.3, "time", "date")
-        val reminders1 = Reminders(1L, "Dhaka", "Dhaka", 12.3, 12.3, "time", "date")
-        val reminders2 = Reminders(1L, "Dhaka", "Dhaka", 12.3, 12.3, "time", "date")
-        val reminders3 = Reminders(1L, "Dhaka", "Dhaka", 12.3, 12.3, "time", "date")
-        val reminders4 = Reminders(1L, "Dhaka", "Dhaka", 12.3, 12.3, "time", "date")
+    private fun loadData(viewModel: EventViewModel) {
 
-        dataList.add(reminders)
-        dataList.add(reminders1)
-        dataList.add(reminders2)
-        dataList.add(reminders3)
-        dataList.add(reminders4)
+        dataList= viewModel.database.getAllReminders() as ArrayList<Reminders>
 
-       // dataList.clear()
+        Log.d("TAG", dataList.size.toString())
 
     }
 

@@ -20,7 +20,7 @@ abstract class ReminderDatabase : RoomDatabase(){
 
                 if (instance == null) {
                     instance = Room.databaseBuilder(context.applicationContext,
-                        ReminderDatabase::class.java, "reminders_database").fallbackToDestructiveMigration().build()
+                        ReminderDatabase::class.java, "reminders_database").fallbackToDestructiveMigration().allowMainThreadQueries().build()
                 }
                 INSTANCE = instance
                 return instance
