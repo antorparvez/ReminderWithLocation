@@ -19,7 +19,6 @@ import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.mghtest.reminderwithlocation.R
 import com.mghtest.reminderwithlocation.database.Reminders
-import kotlinx.android.synthetic.main.bottom_sheet.*
 
 
 class EventFragment : Fragment(), OnMapReadyCallback {

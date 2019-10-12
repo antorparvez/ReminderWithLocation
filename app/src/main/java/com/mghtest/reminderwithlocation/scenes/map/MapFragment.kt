@@ -1,7 +1,6 @@
 package com.mghtest.reminderwithlocation.scenes.map
 
 
-import android.location.Address
 import android.location.Geocoder
 import android.os.Bundle
 import android.util.Log
@@ -9,7 +8,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.google.android.gms.common.api.Status
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -25,8 +23,8 @@ import com.google.android.libraries.places.widget.AutocompleteSupportFragment
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.mghtest.reminderwithlocation.R
-import com.mghtest.reminderwithlocation.scenes.reminder.ReminderFragment
-import java.io.IOException
+import com.mghtest.reminderwithlocation.database.prefs.AppConstants
+import com.mghtest.reminderwithlocation.database.prefs.AppPreferences
 import java.util.*
 
 
@@ -53,6 +51,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
         val fields = Arrays.asList(Place.Field.NAME, Place.Field.LAT_LNG)
 
+
         autocomplete =
             childFragmentManager.findFragmentById(R.id.fragment_autocomplete) as AutocompleteSupportFragment
 
@@ -72,8 +71,16 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                 address = p0.address.toString()
                 latitude = p0.latLng!!.latitude
                 longitude = p0.latLng!!.longitude
-                if(!address.isEmpty()){
-                    saveReminderButton.visibility=View.VISIBLE
+                if (!address.isEmpty()) {
+
+                    val appPreferences= AppPreferences(requireContext())
+                    saveReminderButton.visibility = View.VISIBLE
+
+                    appPreferences.saveString(AppConstants.ADDRESS, address)
+                    appPreferences.saveString(AppConstants.LAT, latitude.toString())
+                    appPreferences.saveString(AppConstants.LONG, longitude.toString())
+
+
                 }
             }
 
@@ -90,11 +97,9 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
         saveReminderButton = view.findViewById(R.id.btn_add_reminder)
 
-        saveReminderButton.setOnClickListener { v->
-          //Toast.makeText(context, address, Toast.LENGTH_SHORT).show()
-            activity?.findViewById<BottomNavigationView>(R.id.bottomNavigationView)?.selectedItemId=R.id.add_reminder
-
-            //childFragmentManager.beginTransaction().replace(R.id.common_layout, ReminderFragment()).commit()
+        saveReminderButton.setOnClickListener { v ->
+            activity?.findViewById<BottomNavigationView>(R.id.bottomNavigationView)
+                ?.selectedItemId = R.id.add_reminder
 
         }
 
@@ -107,9 +112,9 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         mMap = googleMap
 
         // Add a marker in Sydney and move the camera
-        val sydney = LatLng(23.7509, 90.3904)
-        mMap.addMarker(MarkerOptions().position(sydney).draggable(true))
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(sydney, 13f))
+        val dhaka = LatLng(23.7509, 90.3904)
+        mMap.addMarker(MarkerOptions().position(dhaka).draggable(true))
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(dhaka, 13f))
 
 
 
@@ -128,8 +133,15 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                 latitude = latLng.latitude
                 longitude = latLng.longitude
 
-                if(!address.isEmpty()){
-                    saveReminderButton.visibility=View.VISIBLE
+                if (!address.isEmpty()) {
+                    saveReminderButton.visibility = View.VISIBLE
+
+                    val appPreferences= AppPreferences(requireContext())
+                    appPreferences.saveString(AppConstants.ADDRESS, address)
+                    appPreferences.saveString(AppConstants.LAT, latitude.toString())
+                    appPreferences.saveString(AppConstants.LONG, longitude.toString())
+
+
                 }
 
             }
