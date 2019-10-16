@@ -1,5 +1,5 @@
 # ReminderWithLocation
-Assignment for the test of MGH
+
 
 ##This project uses the following technologies 
 * Kotlin
